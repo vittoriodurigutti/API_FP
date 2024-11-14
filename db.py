@@ -1,19 +1,25 @@
 # db.py
-import mysql.connector
+import psycopg2
 from config import DB_CONFIG
 
 def get_db_connection():
     """
-    Retorna una nueva conexión a la base de datos.
+    Retorna una nueva conexión a la base de datos PostgreSQL.
     """
-    return mysql.connector.connect(**DB_CONFIG)
+    return psycopg2.connect(
+        host=DB_CONFIG['host'],
+        port=DB_CONFIG['port'],
+        user=DB_CONFIG['user'],
+        password=DB_CONFIG['password'],
+        database=DB_CONFIG['database']
+    )
 
 def ejecutar_consulta(query, params=()):
     """
     Ejecuta una consulta en la base de datos y retorna los resultados.
     """
     conexion = get_db_connection()
-    cursor = conexion.cursor(dictionary=True)
+    cursor = conexion.cursor()
     cursor.execute(query, params)
     resultados = cursor.fetchall()
     cursor.close()

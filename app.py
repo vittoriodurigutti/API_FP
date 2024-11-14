@@ -68,11 +68,12 @@ def obtener_datos():
         # Consulta de los últimos 10 registros de la base de datos
         sql_consulta_datos = """
             SELECT nodo_id, temperatura, humedad, luz_ambiente, humedad_suelo_cap, 
-                   humedad_suelo_res, nivel_agua, dispositivo_id
+                humedad_suelo_res, nivel_agua, dispositivo_id
             FROM sensor_datos
-            ORDER BY id DESC
+            ORDER BY id_sensor DESC
             LIMIT 10
         """
+
         datos = ejecutar_consulta(sql_consulta_datos)
 
         return jsonify(datos), 200
