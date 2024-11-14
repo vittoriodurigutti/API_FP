@@ -2,12 +2,18 @@
 from flask import Flask, request, jsonify, render_template
 from db import ejecutar_consulta, insertar_datos
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para permitir solicitudes desde el frontend
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/sobre-nosotros.html')
+def sobre_nosotros():
+    return render_template('sobre-nosotros.html')
 
 # Ruta para recibir datos del ESP32
 @app.route('/api', methods=['POST'])
@@ -86,4 +92,4 @@ if __name__ == '__main__':
     # Leer el puerto asignado desde la variable de entorno PORT
     port = int(os.environ.get("PORT", 5000))
     # Ejecutar la API Flask
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
