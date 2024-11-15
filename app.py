@@ -87,7 +87,13 @@ def recibir_datos():
             humedad_suelo_cap, humedad_suelo_res, nivel_agua,
             distancia, iluminacion, bomba, dispositivo_id
         )
-        insertar_datos(sql_sensor_datos, datos_sensor)
+
+        # Try inserting sensor data and log success or failure
+        if insertar_datos(sql_sensor_datos, datos_sensor):
+            print("Datos del sensor insertados correctamente en sensor_datos.")
+        else:
+            print("Error al insertar datos del sensor en sensor_datos.")
+            return jsonify({'status': 'Error al guardar los datos', 'error': 'Error al insertar en sensor_datos'}), 500
 
         # Insert into actuador_datos if the state of 'iluminacion' or 'bomba' changes
         if iluminacion or bomba:
@@ -97,11 +103,17 @@ def recibir_datos():
             """
             if iluminacion:
                 datos_actuador_iluminacion = (nodo_id, 'Iluminación', 'Encendido', dispositivo_id)
-                insertar_datos(sql_actuador_datos, datos_actuador_iluminacion)
+                if insertar_datos(sql_actuador_datos, datos_actuador_iluminacion):
+                    print("Datos de iluminación insertados correctamente en actuador_datos.")
+                else:
+                    print("Error al insertar datos de iluminación en actuador_datos.")
 
             if bomba:
                 datos_actuador_bomba = (nodo_id, 'Bomba', 'Encendido', dispositivo_id)
-                insertar_datos(sql_actuador_datos, datos_actuador_bomba)
+                if insertar_datos(sql_actuador_datos, datos_actuador_bomba):
+                    print("Datos de bomba insertados correctamente en actuador_datos.")
+                else:
+                    print("Error al insertar datos de bomba en actuador_datos.")
 
         return jsonify({'status': 'Datos guardados correctamente'}), 200
 
