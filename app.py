@@ -5,7 +5,7 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Habilita CORS para permitir solicitudes desde el frontend
+CORS(app)  # Enable CORS for frontend requests
 
 @app.route('/')
 def index():
@@ -15,11 +15,11 @@ def index():
 def sobre_nosotros():
     return render_template('sobre-nosotros.html')
 
-# Ruta para recibir datos del ESP32
+# Route to receive data from the ESP32
 @app.route('/api', methods=['POST'])
 def recibir_datos():
     try:
-        # Obtener los datos enviados por el ESP32
+        # Extract data sent by ESP32
         nodo_id = request.form['id']
         temperatura = request.form['temp']
         humedad = request.form['hum']
@@ -30,7 +30,7 @@ def recibir_datos():
         nombre = request.form['nombre']
         apellido = request.form['apellido']
 
-        # Verificar si el dispositivo ya existe en la base de datos
+        # Check if the device already exists in the database
         sql_dispositivo = """
             SELECT id_dispositivo FROM dispositivo
             WHERE nombre = %s AND apellido = %s
@@ -38,18 +38,18 @@ def recibir_datos():
         dispositivo = ejecutar_consulta(sql_dispositivo, (nombre, apellido))
 
         if not dispositivo:
-            # Si el dispositivo no existe, lo insertamos
+            # If the device does not exist, insert it
             sql_insert_dispositivo = """
                 INSERT INTO dispositivo (nombre, apellido)
                 VALUES (%s, %s)
             """
             insertar_datos(sql_insert_dispositivo, (nombre, apellido))
-            # Obtener el ID del nuevo dispositivo
+            # Get the ID of the new device
             dispositivo_id = ejecutar_consulta(sql_dispositivo, (nombre, apellido))[0]['id_dispositivo']
         else:
             dispositivo_id = dispositivo[0]['id_dispositivo']
 
-        # Insertar los datos en la tabla sensor_datos
+        # Insert sensor data into the sensor_datos table
         sql_sensor_datos = """
             INSERT INTO sensor_datos (nodo_id, temperatura, humedad, luz_ambiente,
                                       humedad_suelo_cap, humedad_suelo_res, nivel_agua, dispositivo_id)
@@ -67,14 +67,14 @@ def recibir_datos():
         print(f"Error: {e}")
         return jsonify({'status': 'Error al guardar los datos', 'error': str(e)}), 500
 
-# Ruta para obtener los últimos 10 datos
+# Route to get the last 10 data entries
 @app.route('/api/datos', methods=['GET'])
 def obtener_datos():
     try:
-        # Consulta de los últimos 10 registros de la base de datos
+        # Query the last 10 records from the database
         sql_consulta_datos = """
             SELECT nodo_id, temperatura, humedad, luz_ambiente, humedad_suelo_cap, 
-                humedad_suelo_res, nivel_agua, dispositivo_id
+                   humedad_suelo_res, nivel_agua, dispositivo_id
             FROM sensor_datos
             ORDER BY id_sensor DESC
             LIMIT 10
@@ -89,7 +89,7 @@ def obtener_datos():
         return jsonify({'status': 'Error al obtener datos', 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Leer el puerto asignado desde la variable de entorno PORT
+    # Read the assigned port from the PORT environment variable
     port = int(os.environ.get("PORT", 5000))
-    # Ejecutar la API Flask
+    # Run the Flask API
     app.run(host='0.0.0.0', port=port, debug=True)
