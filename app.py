@@ -113,7 +113,7 @@ def recibir_datos():
 @app.route('/api/datos', methods=['GET'])
 def obtener_datos():
     try:
-        # Query the last 10 records from the database
+        # Consulta de los últimos 10 registros de sensor_datos
         sql_consulta_datos = """
             SELECT nodo_id, temperatura, humedad, luz_ambiente, humedad_suelo_cap, 
                    humedad_suelo_res, nivel_agua, distancia, iluminacion, bomba, dispositivo_id
@@ -122,9 +122,28 @@ def obtener_datos():
             LIMIT 10
         """
 
+        # Ejecutar consulta y obtener datos
         datos = ejecutar_consulta(sql_consulta_datos)
 
-        return jsonify(datos), 200
+        # Transformar resultados en un diccionario para garantizar formato JSON
+        resultado = [
+            {
+                "nodo_id": d[0],
+                "temperatura": d[1],
+                "humedad": d[2],
+                "luz_ambiente": d[3],
+                "humedad_suelo_cap": d[4],
+                "humedad_suelo_res": d[5],
+                "nivel_agua": d[6],
+                "distancia": d[7],
+                "iluminacion": bool(d[8]),
+                "bomba": bool(d[9]),
+                "dispositivo_id": d[10],
+            }
+            for d in datos
+        ]
+
+        return jsonify(resultado), 200
 
     except Exception as e:
         print(f"Error: {e}")

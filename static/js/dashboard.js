@@ -8,15 +8,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${d.nodo_id}</td>
                 <td>${d.temperatura.toFixed(2)}</td>
                 <td>${d.humedad.toFixed(2)}</td>
-                <td>${d.luz_ambiente}</td>
+                <td>${d.luz_ambiente.toFixed(2)}</td>
                 <td>${d.humedad_suelo_cap}</td>
                 <td>${d.humedad_suelo_res}</td>
                 <td>${d.nivel_agua}</td>
+                <td>${d.distancia}</td>
+                <td>${d.iluminacion ? 'Encendido' : 'Apagado'}</td>
+                <td>${d.bomba ? 'Encendido' : 'Apagado'}</td>
                 <td>${d.dispositivo_id}</td>
             </tr>`).join('');
     }
 
-    // Función para crear un gráfico
+    // Función para crear o actualizar un gráfico
     function createChart(context, label, data, color) {
         return new Chart(context, {
             type: 'line',
@@ -49,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const humData = data.map(d => d.humedad);
         const luzData = data.map(d => d.luz_ambiente);
 
-        // Crear gráficos
+        // Crear o actualizar gráficos
         createChart(
             document.getElementById('tempChart').getContext('2d'),
             'Temperatura (°C)',
@@ -86,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCharts(data);
         } catch (error) {
             console.error('Error al cargar datos:', error);
-            tableBody.innerHTML = '<tr><td colspan="8">Error al cargar los datos</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="11">Error al cargar los datos</td></tr>';
         }
     }
 
