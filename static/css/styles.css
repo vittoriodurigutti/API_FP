@@ -24,6 +24,11 @@ header {
     box-sizing: border-box; /* Asegura que el padding no cause overflow */
 }
 
+.header-icon {
+    width: 100px;
+    vertical-align: middle;
+}
+
 header h1 {
     display: flex;
     align-items: center;
@@ -161,8 +166,8 @@ footer {
 .footer-icons {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 10px;
+    gap: 30px;
+    margin-top: 15px;
 }
 
 .footer-icons a {
