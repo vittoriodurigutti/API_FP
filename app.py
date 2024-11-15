@@ -51,24 +51,28 @@ def recibir_datos():
         # Log incoming data for debugging
         print(f"Received data: {request.form}")
 
-        # Check if the device already exists in the database
+        # Check if the node already exists in the database
         sql_dispositivo = """
             SELECT id_dispositivo FROM dispositivo
-            WHERE id_dispositivo = %s
+            WHERE nodo_id = %s
         """
         dispositivo = ejecutar_consulta(sql_dispositivo, (nodo_id,))
 
         if not dispositivo:
-            # If the device does not exist, insert it
+            # If the node does not exist, insert it
             sql_insert_dispositivo = """
-                INSERT INTO dispositivo (nodo_id, nombre, apellido)
-                VALUES (%s, %s)
+                INSERT INTO dispositivo (nodo_id)
+                VALUES (%s)
             """
             insertar_datos(sql_insert_dispositivo, (nodo_id,))
             # Get the ID of the new device
-            dispositivo_id = ejecutar_consulta(sql_dispositivo, (nodo_id,))[0]['id_dispositivo']
-        else:
-            dispositivo_id = dispositivo[0]['id_dispositivo']
+            dispositivo = ejecutar_consulta(sql_dispositivo, (nodo_id,))
+        
+        # Ensure dispositivo is not None before accessing its ID
+        if not dispositivo:
+            raise ValueError("Failed to retrieve or create dispositivo in the database.")
+
+        dispositivo_id = dispositivo[0]['id_dispositivo']
 
         # Insert sensor data into the sensor_datos table
         sql_sensor_datos = """
