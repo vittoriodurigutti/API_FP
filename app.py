@@ -14,6 +14,10 @@ def index():
 def sobre_nosotros():
     return render_template('sobre-nosotros.html')
 
+@app.route('/proyecto.html')
+def proyecto():
+    return render_template('proyecto.html')
+
 # Route to receive data from the ESP32
 @app.route('/api', methods=['POST'])
 def recibir_datos():
