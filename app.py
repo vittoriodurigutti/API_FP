@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, request, jsonify, render_template
 from db import ejecutar_consulta, insertar_datos
 import os
@@ -19,16 +18,30 @@ def sobre_nosotros():
 @app.route('/api', methods=['POST'])
 def recibir_datos():
     try:
+        # List of required fields
+        required_fields = ['id', 'temp', 'hum', 'luz', 'hum_cap', 'hum_res', 'nivel_agua', 'nombre', 'apellido']
+        
+        # Check if all required fields are present in the request
+        missing_fields = [field for field in required_fields if field not in request.form]
+        if missing_fields:
+            return jsonify({
+                'status': 'Error al guardar los datos',
+                'error': f'Faltan los campos: {", ".join(missing_fields)}'
+            }), 400
+
         # Extract data sent by ESP32
         nodo_id = request.form['id']
-        temperatura = request.form['temp']
-        humedad = request.form['hum']
-        luz_ambiente = request.form['luz']
-        humedad_suelo_cap = request.form['hum_cap']
-        humedad_suelo_res = request.form['hum_res']
-        nivel_agua = request.form['nivel_agua']
+        temperatura = float(request.form['temp'])
+        humedad = float(request.form['hum'])
+        luz_ambiente = float(request.form['luz'])
+        humedad_suelo_cap = int(request.form['hum_cap'])
+        humedad_suelo_res = int(request.form['hum_res'])
+        nivel_agua = int(request.form['nivel_agua'])
         nombre = request.form['nombre']
         apellido = request.form['apellido']
+
+        # Log incoming data for debugging
+        print(f"Received data: {request.form}")
 
         # Check if the device already exists in the database
         sql_dispositivo = """
