@@ -14,10 +14,6 @@ def index():
 def sobre_nosotros():
     return render_template('sobre-nosotros.html')
 
-@app.route('/proyecto.html')
-def proyecto():
-    return render_template('proyecto.html')
-
 # Route to receive data from the ESP32
 @app.route('/api', methods=['POST'])
 def recibir_datos():
@@ -25,7 +21,7 @@ def recibir_datos():
         # List of required fields based on the ESP32 data
         required_fields = [
             'id', 'temp', 'hum', 'luz', 'hum_cap', 'hum_res', 'nivel_agua',
-            'distancia', 'iluminacion', 'bomba'
+            'distancia', 'iluminacion', 'bomba', 'nombre', 'apellido'
         ]
 
         # Check if all required fields are present in the request
@@ -47,26 +43,28 @@ def recibir_datos():
         distancia = int(request.form['distancia'])
         iluminacion = bool(int(request.form['iluminacion']))
         bomba = bool(int(request.form['bomba']))
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
 
         # Log incoming data for debugging
         print(f"Received data: {request.form}")
 
-        # Check if the node already exists in the database
+        # Check if the device already exists in the dispositivo table
         sql_dispositivo = """
             SELECT id_dispositivo FROM dispositivo
-            WHERE nodo_id = %s
+            WHERE nombre = %s AND apellido = %s
         """
-        dispositivo = ejecutar_consulta(sql_dispositivo, (nodo_id,))
+        dispositivo = ejecutar_consulta(sql_dispositivo, (nombre, apellido))
 
         if not dispositivo:
-            # If the node does not exist, insert it
+            # If the device does not exist, insert it
             sql_insert_dispositivo = """
-                INSERT INTO dispositivo (nodo_id)
-                VALUES (%s)
+                INSERT INTO dispositivo (nombre, apellido)
+                VALUES (%s, %s)
             """
-            insertar_datos(sql_insert_dispositivo, (nodo_id,))
+            insertar_datos(sql_insert_dispositivo, (nombre, apellido))
             # Get the ID of the new device
-            dispositivo = ejecutar_consulta(sql_dispositivo, (nodo_id,))
+            dispositivo = ejecutar_consulta(sql_dispositivo, (nombre, apellido))
         
         # Ensure dispositivo is not None before accessing its ID
         if not dispositivo:
@@ -87,6 +85,23 @@ def recibir_datos():
             distancia, iluminacion, bomba, dispositivo_id
         )
         insertar_datos(sql_sensor_datos, datos_sensor)
+
+        # Insert into actuador_datos if the state of 'iluminacion' or 'bomba' changes
+        if iluminacion:
+            sql_actuador_datos = """
+                INSERT INTO actuador_datos (nodo_id, tipo_actuador, estado_actuador, dispositivo_id)
+                VALUES (%s, %s, %s, %s)
+            """
+            datos_actuador_iluminacion = (nodo_id, 'Iluminación', 'Encendido' if iluminacion else 'Apagado', dispositivo_id)
+            insertar_datos(sql_actuador_datos, datos_actuador_iluminacion)
+
+        if bomba:
+            sql_actuador_datos = """
+                INSERT INTO actuador_datos (nodo_id, tipo_actuador, estado_actuador, dispositivo_id)
+                VALUES (%s, %s, %s, %s)
+            """
+            datos_actuador_bomba = (nodo_id, 'Bomba', 'Encendido' if bomba else 'Apagado', dispositivo_id)
+            insertar_datos(sql_actuador_datos, datos_actuador_bomba)
 
         return jsonify({'status': 'Datos guardados correctamente'}), 200
 
