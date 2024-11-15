@@ -68,9 +68,12 @@ def recibir_datos():
         
         # Ensure dispositivo is not None before accessing its ID
         if not dispositivo:
-            raise ValueError("Failed to retrieve or create dispositivo in the database.")
+            return jsonify({
+                'status': 'Error al guardar los datos',
+                'error': 'Fallo al crear o recuperar el dispositivo en la base de datos'
+            }), 500
 
-        dispositivo_id = dispositivo[0]['id_dispositivo']
+        dispositivo_id = dispositivo[0][0]
 
         # Insert sensor data into the sensor_datos table
         sql_sensor_datos = """
@@ -87,21 +90,18 @@ def recibir_datos():
         insertar_datos(sql_sensor_datos, datos_sensor)
 
         # Insert into actuador_datos if the state of 'iluminacion' or 'bomba' changes
-        if iluminacion:
+        if iluminacion or bomba:
             sql_actuador_datos = """
                 INSERT INTO actuador_datos (nodo_id, tipo_actuador, estado_actuador, dispositivo_id)
                 VALUES (%s, %s, %s, %s)
             """
-            datos_actuador_iluminacion = (nodo_id, 'Iluminación', 'Encendido' if iluminacion else 'Apagado', dispositivo_id)
-            insertar_datos(sql_actuador_datos, datos_actuador_iluminacion)
+            if iluminacion:
+                datos_actuador_iluminacion = (nodo_id, 'Iluminación', 'Encendido', dispositivo_id)
+                insertar_datos(sql_actuador_datos, datos_actuador_iluminacion)
 
-        if bomba:
-            sql_actuador_datos = """
-                INSERT INTO actuador_datos (nodo_id, tipo_actuador, estado_actuador, dispositivo_id)
-                VALUES (%s, %s, %s, %s)
-            """
-            datos_actuador_bomba = (nodo_id, 'Bomba', 'Encendido' if bomba else 'Apagado', dispositivo_id)
-            insertar_datos(sql_actuador_datos, datos_actuador_bomba)
+            if bomba:
+                datos_actuador_bomba = (nodo_id, 'Bomba', 'Encendido', dispositivo_id)
+                insertar_datos(sql_actuador_datos, datos_actuador_bomba)
 
         return jsonify({'status': 'Datos guardados correctamente'}), 200
 
