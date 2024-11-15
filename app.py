@@ -18,9 +18,12 @@ def sobre_nosotros():
 @app.route('/api', methods=['POST'])
 def recibir_datos():
     try:
-        # List of required fields
-        required_fields = ['id', 'temp', 'hum', 'luz', 'hum_cap', 'hum_res', 'nivel_agua', 'nombre', 'apellido']
-        
+        # List of required fields based on the ESP32 data
+        required_fields = [
+            'id', 'temp', 'hum', 'luz', 'hum_cap', 'hum_res', 'nivel_agua',
+            'distancia', 'iluminacion', 'bomba'
+        ]
+
         # Check if all required fields are present in the request
         missing_fields = [field for field in required_fields if field not in request.form]
         if missing_fields:
@@ -37,8 +40,9 @@ def recibir_datos():
         humedad_suelo_cap = int(request.form['hum_cap'])
         humedad_suelo_res = int(request.form['hum_res'])
         nivel_agua = int(request.form['nivel_agua'])
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
+        distancia = int(request.form['distancia'])
+        iluminacion = bool(int(request.form['iluminacion']))
+        bomba = bool(int(request.form['bomba']))
 
         # Log incoming data for debugging
         print(f"Received data: {request.form}")
@@ -46,31 +50,33 @@ def recibir_datos():
         # Check if the device already exists in the database
         sql_dispositivo = """
             SELECT id_dispositivo FROM dispositivo
-            WHERE nombre = %s AND apellido = %s
+            WHERE id_dispositivo = %s
         """
-        dispositivo = ejecutar_consulta(sql_dispositivo, (nombre, apellido))
+        dispositivo = ejecutar_consulta(sql_dispositivo, (nodo_id,))
 
         if not dispositivo:
             # If the device does not exist, insert it
             sql_insert_dispositivo = """
-                INSERT INTO dispositivo (nombre, apellido)
+                INSERT INTO dispositivo (nodo_id, nombre, apellido)
                 VALUES (%s, %s)
             """
-            insertar_datos(sql_insert_dispositivo, (nombre, apellido))
+            insertar_datos(sql_insert_dispositivo, (nodo_id,))
             # Get the ID of the new device
-            dispositivo_id = ejecutar_consulta(sql_dispositivo, (nombre, apellido))[0]['id_dispositivo']
+            dispositivo_id = ejecutar_consulta(sql_dispositivo, (nodo_id,))[0]['id_dispositivo']
         else:
             dispositivo_id = dispositivo[0]['id_dispositivo']
 
         # Insert sensor data into the sensor_datos table
         sql_sensor_datos = """
             INSERT INTO sensor_datos (nodo_id, temperatura, humedad, luz_ambiente,
-                                      humedad_suelo_cap, humedad_suelo_res, nivel_agua, dispositivo_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                      humedad_suelo_cap, humedad_suelo_res, nivel_agua,
+                                      distancia, iluminacion, bomba, dispositivo_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         datos_sensor = (
             nodo_id, temperatura, humedad, luz_ambiente,
-            humedad_suelo_cap, humedad_suelo_res, nivel_agua, dispositivo_id
+            humedad_suelo_cap, humedad_suelo_res, nivel_agua,
+            distancia, iluminacion, bomba, dispositivo_id
         )
         insertar_datos(sql_sensor_datos, datos_sensor)
 
@@ -87,7 +93,7 @@ def obtener_datos():
         # Query the last 10 records from the database
         sql_consulta_datos = """
             SELECT nodo_id, temperatura, humedad, luz_ambiente, humedad_suelo_cap, 
-                   humedad_suelo_res, nivel_agua, dispositivo_id
+                   humedad_suelo_res, nivel_agua, distancia, iluminacion, bomba, dispositivo_id
             FROM sensor_datos
             ORDER BY id_sensor DESC
             LIMIT 10
