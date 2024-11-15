@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${d.distancia}</td>
                 <td>${d.iluminacion ? 'Encendido' : 'Apagado'}</td>
                 <td>${d.bomba ? 'Encendido' : 'Apagado'}</td>
-                <td>${d.dispositivo_id}</td>
             </tr>`).join('');
     }
 
@@ -89,10 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCharts(data);
         } catch (error) {
             console.error('Error al cargar datos:', error);
-            tableBody.innerHTML = '<tr><td colspan="11">Error al cargar los datos</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10">Error al cargar los datos</td></tr>';
         }
     }
 
     // Llamar a la función para cargar datos al cargar la página
     fetchData();
+
+    // Actualizar cada 5 segundos
+    setInterval(fetchData, 5000);
 });

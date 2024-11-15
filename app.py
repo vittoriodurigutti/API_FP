@@ -6,6 +6,14 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend requests
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/sobre-nosotros.html')
+def sobre_nosotros():
+    return render_template('sobre-nosotros.html')
+
 @app.route('/api', methods=['POST'])
 def recibir_datos():
     try:
@@ -71,6 +79,43 @@ def recibir_datos():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'status': 'Error al guardar los datos', 'error': str(e)}), 500
+    
+@app.route('/api/datos', methods=['GET'])
+def obtener_datos():
+    try:
+        # Consulta para obtener los últimos 10 registros de la tabla sensor_datos
+        sql_query = """
+            SELECT nodo_id, temperatura, humedad, luz_ambiente, humedad_suelo_cap, 
+                   humedad_suelo_res, nivel_agua, distancia, iluminacion, bomba
+            FROM sensor_datos
+            ORDER BY id_sensor DESC
+            LIMIT 10
+        """
+        datos = ejecutar_consulta(sql_query)
+
+        # Transformar resultados en un diccionario para enviar como JSON
+        resultado = [
+            {
+                "nodo_id": d[0],
+                "temperatura": d[1],
+                "humedad": d[2],
+                "luz_ambiente": d[3],
+                "humedad_suelo_cap": d[4],
+                "humedad_suelo_res": d[5],
+                "nivel_agua": d[6],
+                "distancia": d[7],
+                "iluminacion": bool(d[8]),
+                "bomba": bool(d[9])
+            }
+            for d in datos
+        ]
+
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        print(f"Error al obtener datos: {e}")
+        return jsonify({'status': 'Error al obtener datos', 'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     # Leer el puerto asignado de la variable de entorno PORT
